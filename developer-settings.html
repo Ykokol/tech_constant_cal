@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>开发者设置</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>开发者设置</h1>
+        </header>
+        
+        <nav>
+            <a href="index.html" class="nav-btn">返回首页</a>
+        </nav>
+        
+        <main>
+            <div class="form-group">
+                <label for="configName">配置名称</label>
+                <input type="text" id="configName" placeholder="请输入配置名称" value="default">
+            </div>
+            
+            <div class="form-group">
+                <label for="configList">配置列表</label>
+                <select id="configList" onchange="selectConfig()">
+                    <option value="default">default</option>
+                </select>
+                <button class="btn btn-sm" onclick="deleteConfig()">删除</button>
+                <button class="btn btn-sm" onclick="copyConfig()">复制</button>
+            </div>
+            
+            <div class="config-item">
+                <h3>EP阴极暴露长度计算参数</h3>
+                <div class="config-param">
+                    <label for="cathodeRatio">阴极面积与样品面积比例</label>
+                    <input type="number" id="cathodeRatio" placeholder="请输入比例" step="0.1" value="10">
+                </div>
+            </div>
+            
+            <div class="config-item">
+                <h3>样品快捷分割参数</h3>
+                <div class="config-param">
+                    <label for="wireDiameter">线切割线径 (mm)</label>
+                    <input type="number" id="wireDiameter" placeholder="请输入线径" step="0.01" value="0.42">
+                </div>
+                <div class="config-param">
+                    <label for="dimensionTolerance">尺寸容差 (%)</label>
+                    <input type="number" id="dimensionTolerance" placeholder="例如: 5" step="1" value="5">
+                    <p class="instructions">允许样品尺寸在一定百分比内小于轮廓。这有助于利用那些“差一点”的位置。</p>
+                </div>
+            </div>
+            
+            <button class="btn" onclick="saveDeveloperConfig()">保存配置</button>
+            <button class="btn btn-secondary" onclick="loadDeveloperConfig()">加载配置</button>
+        </main>
+        
+        <footer>
+            <p>© 2026 工程常数计算工具</p>
+        </footer>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>

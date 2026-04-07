@@ -1,0 +1,186 @@
+
+document.addEventListener('DOMContentLoaded', () => {
+    // --- DOM 元素获取 ---
+    const imageInput = document.getElementById('stockImage');
+    const setScaleBtn = document.getElementById('setScaleBtn');
+    const calculateBtn = document.getElementById('calculateBtn');
+    const canvas = document.getElementById('previewCanvas');
+    const ctx = canvas.getContext('2d');
+    const spinner = document.getElementById('spinner');
+    const resultDiv = document.getElementById('cuttingResult');
+    const scaleInfo = document.getElementById('scaleInfo');
+    const canvasTitle = document.getElementById('canvasTitle');
+
+    // --- 全局状态变量 ---
+    let originalImage = null;
+    let imageBase64 = '';
+    let scale = 0; // mm per pixel
+    let isSettingScale = false;
+    let scalePoints = [];
+    let devConfig = { dimensionTolerance: 5 }; // 默认容差
+
+    function loadDevConfig() {
+        const config = JSON.parse(localStorage.getItem('default'));
+        if (config && config.dimensionTolerance) {
+            devConfig.dimensionTolerance = config.dimensionTolerance;
+        }
+    }
+    loadDevConfig();
+
+    // --- 事件监听 ---
+
+    imageInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            originalImage = new Image();
+            originalImage.onload = () => {
+                resetState();
+                canvas.width = originalImage.width;
+                canvas.height = originalImage.height;
+                ctx.drawImage(originalImage, 0, 0);
+                canvasTitle.textContent = "图片已上传，请设定比例尺";
+            };
+            originalImage.src = e.target.result;
+            imageBase64 = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+
+    setScaleBtn.addEventListener('click', () => {
+        if (!originalImage) {
+            alert('请先上传一张图片！');
+            return;
+        }
+        isSettingScale = true;
+        scalePoints = [];
+        canvasTitle.textContent = "请在图上点击第一个点";
+        canvas.style.cursor = 'crosshair';
+    });
+
+    canvas.addEventListener('click', (event) => {
+        if (!isSettingScale) return;
+
+        const rect = canvas.getBoundingClientRect();
+        const x = (event.clientX - rect.left) * (canvas.width / rect.width);
+        const y = (event.clientY - rect.top) * (canvas.height / rect.height);
+        scalePoints.push({ x, y });
+
+        redrawCanvas();
+        drawScalePoints();
+
+        if (scalePoints.length === 2) {
+            const realDistance = prompt('请输入这两点间的实际物理距离 (mm):');
+            if (realDistance && !isNaN(realDistance) && realDistance > 0) {
+                const pixelDistance = Math.sqrt(Math.pow(scalePoints[1].x - scalePoints[0].x, 2) + Math.pow(scalePoints[1].y - scalePoints[0].y, 2));
+                scale = realDistance / pixelDistance;
+                scaleInfo.innerHTML = `<b>当前比例尺:</b> ${(1/scale).toFixed(2)} pixel/mm`;
+                canvasTitle.textContent = "比例尺设定完成，请输入参数后计算";
+            } else {
+                alert('请输入一个有效的正数！');
+                scalePoints = [];
+                canvasTitle.textContent = "设定失败, 请重新点击按钮开始";
+            }
+            isSettingScale = false;
+            canvas.style.cursor = 'default';
+        }
+    });
+
+    calculateBtn.addEventListener('click', async () => {
+        if (!imageBase64) { alert('请先上传一张图片！'); return; }
+        if (scale === 0) { alert('请先设定比例尺！'); return; }
+
+        spinner.style.display = 'block';
+        resultDiv.innerHTML = '';
+        redrawCanvas();
+
+        const payload = {
+            image: imageBase64,
+            scale: scale,
+            stock_thickness: document.getElementById('stockThickness').value,
+            sample_thickness: document.getElementById('sampleThickness').value,
+            sample_width: document.getElementById('sampleWidth').value,
+            sample_height: document.getElementById('sampleHeight').value,
+            tolerance: devConfig.dimensionTolerance || 0
+        };
+
+        try {
+            const response = await fetch('http://127.0.0.1:5001/process-image', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(errData.error || `HTTP 错误! 状态: ${response.status}`);
+            }
+
+            const data = await response.json();
+            drawFinalPlan(data);
+            resultDiv.innerHTML = `
+                <h4>产出预估:</h4>
+                <p><strong>总计可切割样品:</strong> ${data.total_samples} 个 (共 ${data.layers} 层)</p>
+            `;
+
+        } catch (error) {
+            console.error('计算失败:', error);
+            resultDiv.innerHTML = `<p style="color: red;">计算失败: ${error.message}</p>`;
+        } finally {
+            spinner.style.display = 'none';
+        }
+    });
+
+    function redrawCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (originalImage) {
+            ctx.drawImage(originalImage, 0, 0);
+        }
+    }
+    
+    function resetState() {
+        redrawCanvas();
+        scale = 0;
+        isSettingScale = false;
+        scalePoints = [];
+        scaleInfo.innerHTML = '';
+        resultDiv.innerHTML = '';
+        canvasTitle.textContent = "";
+        canvas.style.cursor = 'default';
+    }
+
+    function drawScalePoints() {
+        ctx.fillStyle = '#ff00ff';
+        scalePoints.forEach(p => {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 5, 0, 2 * Math.PI);
+            ctx.fill();
+        });
+        if (scalePoints.length === 2) {
+            ctx.beginPath();
+            ctx.moveTo(scalePoints[0].x, scalePoints[0].y);
+            ctx.lineTo(scalePoints[1].x, scalePoints[1].y);
+            ctx.strokeStyle = '#ff00ff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+    }
+
+    function drawFinalPlan(data) {
+        ctx.beginPath();
+        ctx.moveTo(data.contour[0][0], data.contour[0][1]);
+        for (let i = 1; i < data.contour.length; i++) {
+            ctx.lineTo(data.contour[i][0], data.contour[i][1]);
+        }
+        ctx.closePath();
+        ctx.strokeStyle = 'lime';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        data.placements.forEach((p) => {
+            const [x, y, w, h] = p;
+            ctx.strokeStyle = 'red';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x, y, w, h);
+        });
+    }
+});

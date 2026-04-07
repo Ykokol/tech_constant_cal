@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>计算历史</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>计算历史</h1>
+        </header>
+        
+        <nav>
+            <a href="index.html" class="nav-btn">返回首页</a>
+        </nav>
+        
+        <main>
+            <div id="historyList"></div>
+        </main>
+        
+        <footer>
+            <p>© 2026 工程常数计算工具</p>
+        </footer>
+    </div>
+    
+    <script src="script.js"></script>
+    <script>
+        // 显示历史记录
+        function displayHistory() {
+            const history = JSON.parse(localStorage.getItem('history')) || [];
+            const historyList = document.getElementById('historyList');
+            
+            if (history.length === 0) {
+                historyList.innerHTML = '<p>暂无历史记录</p>';
+                return;
+            }
+            
+            historyList.innerHTML = '';
+            history.reverse().forEach((item, index) => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'sample-item';
+                
+                const date = new Date(item.timestamp);
+                const formattedDate = date.toLocaleString();
+                
+                let inputStr = '';
+                let resultStr = '';
+                
+                if (item.type === 'EP阴极暴露长度计算') {
+                    inputStr = `阴极宽度: ${item.input.cathodeWidth}<br>样品数量: ${item.input.samples.length}`;
+                    resultStr = `总样品面积: ${item.result.totalSampleArea.toFixed(2)}<br>阴极长度: ${item.result.cathodeLength.toFixed(2)}`;
+                } else if (item.type === '样品快捷分割') {
+                    inputStr = `样品尺寸: ${item.input.sampleLength}x${item.input.sampleWidth}x${item.input.sampleThickness}<br>边角料尺寸: ${item.input.stockLength}x${item.input.stockWidth}`;
+                    resultStr = `可切出数量: ${item.result.totalSamples}<br>剩余材料: ${item.result.remainingLength.toFixed(2)}x${item.result.remainingWidth.toFixed(2)}`;
+                }
+                
+                historyItem.innerHTML = `
+                    <strong>${item.type}</strong><br>
+                    <small>${formattedDate}</small><br>
+                    <br>
+                    <strong>输入参数:</strong><br>
+                    ${inputStr}<br>
+                    <br>
+                    <strong>计算结果:</strong><br>
+                    ${resultStr}
+                `;
+                historyList.appendChild(historyItem);
+            });
+        }
+        
+        // 页面加载时显示历史记录
+        window.onload = function() {
+            displayHistory();
+        };
+    </script>
+</body>
+</html>

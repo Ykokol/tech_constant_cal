@@ -1,58 +1,115 @@
-/* 全局样式 */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+/* =========================================
+   全局与基础样式 (经典清爽 - 白/浅蓝/方框)
+   ========================================= */
+:root {
+    --bg-color: #f0f4f8; /* 浅蓝灰背景，保护视力 */
+    --panel-bg: #ffffff; /* 纯白面板 */
+    --text-main: #333333;
+    --text-muted: #666666;
+    --primary-color: #0078d7; /* 经典工程浅蓝 */
+    --primary-hover: #005a9e;
+    --secondary-color: #e1dfdd;
+    --secondary-hover: #c8c6c4;
+    --danger-color: #d13438;
+    --border-color: #c8c6c4;
+    --border-radius: 0px; /* 严格的绝对方框设计 */
 }
 
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f5f5f5;
-    color: #333;
-    line-height: 1.6;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: "Segoe UI", Roboto, Arial, sans-serif; background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; padding: 20px; }
+.container { max-width: 1200px; margin: 0 auto; }
 
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
+header { text-align: center; margin-bottom: 20px; }
+h1 { font-size: 2em; color: var(--primary-color); font-weight: normal; }
+h2 { font-size: 1.4em; margin-bottom: 15px; border-bottom: 2px solid var(--primary-color); padding-bottom: 5px; color: #333; }
 
-header {
-    text-align: center;
-    margin-bottom: 40px;
-    padding: 20px 0;
-    border-bottom: 1px solid #ddd;
-}
+nav { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; flex-wrap: wrap; }
+.nav-btn { text-decoration: none; color: var(--primary-color); background-color: var(--panel-bg); padding: 10px 20px; border-radius: var(--border-radius); border: 1px solid var(--primary-color); transition: all 0.2s ease; font-weight: bold; }
+.nav-btn:hover { background-color: var(--primary-color); color: white; }
 
-h1 {
-    color: #2c3e50;
-    font-size: 2.5rem;
-}
+main { display: flex; gap: 20px; flex-wrap: wrap; }
+.controls-container, .canvas-container { flex: 1; min-width: 300px; background-color: var(--panel-bg); padding: 20px; border-radius: var(--border-radius); border: 1px solid var(--border-color); box-shadow: 2px 2px 5px rgba(0,0,0,0.05); }
+.canvas-container { flex: 1.5; display: flex; flex-direction: column; align-items: center; }
+canvas { max-width: 100%; height: auto; border: 1px solid var(--border-color); background-color: #fafafa; margin-top: 15px; }
 
-/* 功能卡片网格 */
+.form-group { margin-bottom: 15px; }
+label { display: block; margin-bottom: 5px; font-weight: bold; color: var(--text-main); }
+input[type="number"], input[type="text"], input[type="file"] { width: 100%; padding: 10px; background-color: #fff; border: 1px solid var(--border-color); color: var(--text-main); border-radius: var(--border-radius); font-size: 1em; }
+input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(0, 120, 215, 0.2); }
+.instructions { font-size: 0.85em; color: var(--text-muted); margin-top: 5px; }
+
+.btn { display: inline-block; padding: 12px 20px; border: 1px solid transparent; border-radius: var(--border-radius); cursor: pointer; font-size: 1em; font-weight: bold; transition: background-color 0.2s; text-align: center; color: var(--text-main); background-color: var(--secondary-color); }
+.btn:hover { background-color: var(--secondary-hover); }
+.btn-primary { background-color: var(--primary-color); color: white; width: 100%; margin-top: 10px; }
+.btn-primary:hover { background-color: var(--primary-hover); }
+
+.results-group { margin-top: 20px; }
+.result { background-color: var(--bg-color); padding: 15px; border-radius: var(--border-radius); border: 1px solid var(--border-color); }
+
+/* 历史记录卡片 (适配浅色主题) */
+.history-card { background-color: var(--panel-bg); border-radius: var(--border-radius); padding: 20px; margin-bottom: 20px; border: 1px solid var(--border-color); border-left: 5px solid var(--primary-color); position: relative; box-shadow: 2px 2px 5px rgba(0,0,0,0.05); }
+.history-card img { max-width: 100%; height: auto; border: 1px solid var(--border-color); margin-top: 15px; }
+.delete-btn { position: absolute; top: 15px; right: 15px; background-color: var(--danger-color); color: white; border: none; padding: 6px 12px; border-radius: var(--border-radius); cursor: pointer; font-size: 0.9em; }
+.delete-btn:hover { background-color: #a80000; }
+.history-date { font-size: 0.9em; color: var(--text-muted); margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+.history-inputs { font-size: 0.95em; margin-bottom: 15px; line-height: 1.5; color: var(--text-main); }
+
+/* 强制把 JS 写死的深色背景改回浅色 */
+.history-card .result { background-color: #f9f9f9 !important; border: 1px solid #ddd !important; color: #333 !important; }
+.history-card .result p, .history-card .result strong, .history-card .result span { color: #333 !important; }
+
+/* 移动端相机 UI (只有这个保留沉浸黑背景，否则看不清镜头) */
+.camera-modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #000; z-index: 9999; flex-direction: column; }
+#cameraVideo { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
+.camera-grid { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: grid; grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; pointer-events: none; }
+.camera-grid div { border: 1px solid rgba(255, 255, 255, 0.4); }
+
+/* 相机文字提示也改成清爽的白底蓝框 */
+.camera-tips { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); width: 90%; background-color: rgba(255, 255, 255, 0.9); color: #333; text-align: center; padding: 10px; border: 1px solid var(--primary-color); font-size: 0.9em; pointer-events: none; z-index: 10; font-weight: bold; }
+.camera-controls { position: absolute; bottom: 30px; left: 0; width: 100%; display: flex; justify-content: space-around; align-items: center; z-index: 10; }
+.camera-btn { border: none; outline: none; border-radius: 0px; cursor: pointer; } 
+.capture-btn { width: 70px; height: 70px; background-color: white; border: 5px solid rgba(255,255,255,0.5); background-clip: padding-box; border-radius: 50%; } /* 快门键保留一点圆润，符合物理按键直觉 */
+.capture-btn:active { background-color: #ccc; }
+.close-btn { width: 60px; height: 60px; background-color: var(--danger-color); color: white; font-size: 14px; border: 2px solid white; }
+/* =========================================
+   首页功能模块方块布局 (恢复最原始的白底蓝调 + 圆形图标)
+   ========================================= */
+/* =========================================
+   首页功能模块方块布局 (恢复水平矩阵排布)
+   ========================================= */
 .feature-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    /* 核心调整：根据屏幕宽度自动横向排列，电脑端会完美展示为 3 个或 4 个一行 */
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 30px;
     margin-bottom: 40px;
+    margin-top: 20px;
+    width: 100%; /* 核心修复：强制撑满父容器，绝对不被压缩成一列 */
 }
 
 .feature-card {
     background-color: white;
-    border-radius: 10px;
+    border-radius: 10px; 
     padding: 30px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     cursor: pointer;
     text-align: center;
+    border: 1px solid #ddd;
+    /* 确保卡片内部的图标、文字完美居中对齐 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
 }
 
 .feature-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    border-color: #3498db; 
 }
 
+/* 恢复经典的蓝色圆形数字图标 */
 .feature-icon {
     display: inline-flex;
     align-items: center;
@@ -70,223 +127,10 @@ h1 {
 .feature-card h2 {
     margin-bottom: 15px;
     color: #2c3e50;
+    border-bottom: none; 
 }
 
 .feature-card p {
     color: #7f8c8d;
 }
 
-/* 表单样式 */
-.form-group {
-    margin-bottom: 20px;
-}
-
-label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: bold;
-    color: #2c3e50;
-}
-
-input[type="number"] {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 1rem;
-}
-
-input[type="number"]:focus {
-    outline: none;
-    border-color: #3498db;
-    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-}
-
-/* 按钮样式 */
-.btn {
-    display: inline-block;
-    padding: 10px 20px;
-    background-color: #3498db;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-    margin-right: 10px;
-    margin-bottom: 10px;
-}
-
-.btn:hover {
-    background-color: #2980b9;
-    transform: translateY(-2px);
-}
-
-.btn:active {
-    transform: translateY(0);
-}
-
-.btn-secondary {
-    background-color: #95a5a6;
-}
-
-.btn-secondary:hover {
-    background-color: #7f8c8d;
-}
-
-.btn-danger {
-    background-color: #e74c3c;
-}
-
-.btn-danger:hover {
-    background-color: #c0392b;
-}
-
-.btn-sm {
-    padding: 5px 10px;
-    font-size: 0.8rem;
-    margin-right: 5px;
-}
-
-/* 错误信息样式 */
-.error-message {
-    color: #e74c3c;
-    font-size: 0.8rem;
-    margin-top: 5px;
-    min-height: 1.2rem;
-}
-
-/* 结果显示 */
-.result {
-    background-color: #ecf0f1;
-    padding: 20px;
-    border-radius: 5px;
-    margin-top: 20px;
-}
-
-.result h3 {
-    margin-bottom: 10px;
-    color: #2c3e50;
-}
-
-/* 样品管理 */
-.sample-item {
-    background-color: #f8f9fa;
-    padding: 15px;
-    border-radius: 5px;
-    margin-bottom: 10px;
-    border-left: 4px solid #3498db;
-}
-
-/* 导航栏 */
-nav {
-    margin-bottom: 30px;
-}
-
-.nav-btn {
-    display: inline-block;
-    padding: 10px 15px;
-    background-color: #3498db;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
-    margin-right: 10px;
-}
-
-.nav-btn:hover {
-    background-color: #2980b9;
-}
-
-/* 配置管理 */
-.config-item {
-    background-color: white;
-    padding: 20px;
-    border-radius: 5px;
-    margin-bottom: 15px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.config-item h3 {
-    margin-bottom: 15px;
-    color: #2c3e50;
-}
-
-.config-param {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-    padding: 10px;
-    background-color: #f8f9fa;
-    border-radius: 5px;
-}
-
-.config-param input {
-    width: 100px;
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-    .container {
-        padding: 10px;
-    }
-    
-    h1 {
-        font-size: 2rem;
-    }
-    
-    h2 {
-        font-size: 1.5rem;
-    }
-    
-    .feature-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .config-param {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    .config-param input {
-        width: 100%;
-        margin-top: 10px;
-    }
-    
-    .btn {
-        display: block;
-        width: 100%;
-        margin-right: 0;
-        text-align: center;
-    }
-    
-    .form-group {
-        margin-bottom: 15px;
-    }
-    
-    .sample-item {
-        padding: 10px;
-    }
-    
-    #imagePreview img {
-        max-width: 100%;
-        height: auto;
-    }
-    
-    .form-group label {
-        font-size: 0.9rem;
-    }
-    
-    input[type="number"] {
-        padding: 8px;
-        font-size: 0.9rem;
-    }
-}
-
-footer {
-    text-align: center;
-    margin-top: 40px;
-    padding: 20px 0;
-    border-top: 1px solid #ddd;
-    color: #7f8c8d;
-}

@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>不规则样品智能分割</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2b2b2b">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <script async src="https://docs.opencv.org/4.8.0/opencv.js" type="text/javascript"></script>
 </head>
 <body>
     <div class="container">
@@ -21,8 +25,11 @@
                 <div class="control-group">
                     <h2>参数输入</h2>
                     <div class="form-group">
-                        <label>1. 上传边角料图片</label>
-                        <input type="file" id="stockImage" accept="image/*">
+                        <label>1. 导入边角料</label>
+                        <div style="display: flex; gap: 10px; margin-top: 5px;">
+                            <button id="openCameraBtn" class="btn" style="flex: 1; background-color: #2196F3; color: white;">📷 直接拍照</button>
+                            <input type="file" id="stockImage" accept="image/*" style="flex: 1;">
+                        </div>
                     </div>
                     <hr>
                     <div class="form-group">
@@ -58,7 +65,7 @@
             </div>
 
             <div class="canvas-container">
-                <h2 id="canvasTitle">请先上传图片</h2>
+                <h2 id="canvasTitle">请先导入图片</h2>
                 <canvas id="previewCanvas"></canvas>
             </div>
         </main>
@@ -66,6 +73,26 @@
         <footer>
             <p>© 2026 工程常数计算工具</p>
         </footer>
+    </div>
+
+    <div id="cameraModal" class="camera-modal">
+        <video id="cameraVideo" autoplay playsinline></video>
+        
+        <div class="camera-grid">
+            <div></div><div></div><div></div>
+            <div></div><div></div><div></div>
+            <div></div><div></div><div></div>
+        </div>
+
+        <div class="camera-tips">
+            <p>💡 提示：请俯拍 | 背景颜色单一(如无尘布) | 避免强反光与阴影</p>
+            <p>请将边角料的直边尽量对齐网格线</p>
+        </div>
+
+        <div class="camera-controls">
+            <button id="closeCameraBtn" class="camera-btn close-btn">取消</button>
+            <button id="takePhotoBtn" class="camera-btn capture-btn"></button>
+            <div style="width: 60px;"></div> </div>
     </div>
     
     <script src="navigation.js"></script>

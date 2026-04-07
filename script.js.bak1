@@ -1,8 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    
-    // ==========================================
-    // 模块一：全局配置管理 (Developer Settings)
-    // ==========================================
     let devConfig = { dimensionTolerance: 5, wireDiameter: 0.42, cathodeRatio: 10 };
 
     function loadDevConfig() {
@@ -11,17 +7,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const config = JSON.parse(configStr);
             devConfig = { ...devConfig, ...config };
         }
-        
-        // 如果当前在开发者设置页面，填充输入框
         if (document.getElementById('wireDiameter')) {
             document.getElementById('wireDiameter').value = devConfig.wireDiameter;
             document.getElementById('dimensionTolerance').value = devConfig.dimensionTolerance;
             document.getElementById('cathodeRatio').value = devConfig.cathodeRatio;
         }
     }
-    loadDevConfig(); // 页面加载时立刻读取全局配置
+    loadDevConfig();
 
-    // 暴露给开发者设置页面的保存/读取函数
     window.saveDeveloperConfig = function() {
         const config = {
             cathodeRatio: parseFloat(document.getElementById('cathodeRatio').value) || 10,
@@ -37,12 +30,8 @@ document.addEventListener('DOMContentLoaded', () => {
         alert('已加载最新配置！');
     };
 
-
-    // ==========================================
-    // 模块二：不规则样品分割工具 (纯前端计算与渲染)
-    // ==========================================
     const canvas = document.getElementById('previewCanvas');
-    if (!canvas) return; // 如果不在分割页面，立刻停止执行后续代码
+    if (!canvas) return; 
 
     const imageInput = document.getElementById('stockImage');
     const setScaleBtn = document.getElementById('setScaleBtn');
@@ -54,11 +43,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const canvasTitle = document.getElementById('canvasTitle');
 
     let originalImage = null;
-    let scale = 0; // mm per pixel
+    let scale = 0; 
     let isSettingScale = false;
     let scalePoints = [];
 
-    // --- 1. 处理本地图片上传 ---
     imageInput.addEventListener('change', (event) => {
         const file = event.target.files[0];
         if (!file) return;
@@ -70,116 +58,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 canvas.width = originalImage.width;
                 canvas.height = originalImage.height;
                 ctx.drawImage(originalImage, 0, 0);
-                canvasTitle.textContent = "图片已导入，请设定比例尺";
+                canvasTitle.textContent = "图片已上传，请设定比例尺";
             };
             originalImage.src = e.target.result;
         };
         reader.readAsDataURL(file);
     });
 
-    // --- 2. 调用原生摄像头 (含浏览器安全合规降级) ---
-    const openCameraBtn = document.getElementById('openCameraBtn');
-    const cameraModal = document.getElementById('cameraModal');
-    const cameraVideo = document.getElementById('cameraVideo');
-    const takePhotoBtn = document.getElementById('takePhotoBtn');
-    const closeCameraBtn = document.getElementById('closeCameraBtn');
-    
-    let videoStream = null;
-
-    // 安全降级：通过隐藏输入框唤醒手机系统相机或电脑文件浏览器
-    function fallbackToNativeCamera() {
-        let hiddenInput = document.getElementById('hiddenCameraFallback');
-        if (!hiddenInput) {
-            hiddenInput = document.createElement('input');
-            hiddenInput.type = 'file';
-            hiddenInput.id = 'hiddenCameraFallback';
-            hiddenInput.accept = 'image/*';
-            hiddenInput.capture = 'environment'; // 优先请求后置相机
-            hiddenInput.style.display = 'none';
-            document.body.appendChild(hiddenInput);
-
-            hiddenInput.addEventListener('change', (event) => {
-                const file = event.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    originalImage = new Image();
-                    originalImage.onload = () => {
-                        resetState();
-                        canvas.width = originalImage.width;
-                        canvas.height = originalImage.height;
-                        ctx.drawImage(originalImage, 0, 0);
-                        canvasTitle.textContent = "图片已获取，请设定比例尺";
-                        hiddenInput.value = ''; // 清空选中状态
-                    };
-                    originalImage.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            });
-        }
-        hiddenInput.click(); 
-    }
-
-    if (openCameraBtn) {
-        openCameraBtn.addEventListener('click', async () => {
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                try {
-                    videoStream = await navigator.mediaDevices.getUserMedia({ 
-                        video: { facingMode: "environment" },
-                        audio: false 
-                    });
-                    cameraVideo.srcObject = videoStream;
-                    cameraModal.style.display = 'flex';
-                } catch (err) {
-                    console.warn("无法打开自定义相机，自动降级为原生相机: ", err);
-                    fallbackToNativeCamera();
-                }
-            } else {
-                console.log("环境不支持高级API，启用原生相机。");
-                fallbackToNativeCamera();
-            }
-        });
-    }
-
-    if (closeCameraBtn) {
-        closeCameraBtn.addEventListener('click', () => {
-            if (videoStream) {
-                videoStream.getTracks().forEach(track => track.stop());
-            }
-            cameraModal.style.display = 'none';
-        });
-    }
-
-    if (takePhotoBtn) {
-        takePhotoBtn.addEventListener('click', () => {
-            if (!videoStream || !cameraVideo.videoWidth) return;
-
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = cameraVideo.videoWidth;
-            tempCanvas.height = cameraVideo.videoHeight;
-            const tempCtx = tempCanvas.getContext('2d');
-            
-            tempCtx.drawImage(cameraVideo, 0, 0, tempCanvas.width, tempCanvas.height);
-            const photoDataUrl = tempCanvas.toDataURL('image/jpeg', 0.9);
-
-            videoStream.getTracks().forEach(track => track.stop());
-            cameraModal.style.display = 'none';
-
-            originalImage = new Image();
-            originalImage.onload = () => {
-                resetState();
-                canvas.width = originalImage.width;
-                canvas.height = originalImage.height;
-                ctx.drawImage(originalImage, 0, 0);
-                canvasTitle.textContent = "图片已拍摄，请设定比例尺";
-            };
-            originalImage.src = photoDataUrl;
-        });
-    }
-
-    // --- 3. 比例尺校准功能 ---
     setScaleBtn.addEventListener('click', () => {
-        if (!originalImage) { alert('请先导入一张边角料图片！'); return; }
+        if (!originalImage) { alert('请先上传一张图片！'); return; }
         isSettingScale = true;
         scalePoints = [];
         canvasTitle.textContent = "请在图上点击第一个点";
@@ -212,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- 4. 历史记录保存辅助函数 ---
+    // 历史记录保存辅助函数
     function saveToHistory(record) {
         let history = JSON.parse(localStorage.getItem('calc_history')) || { sampleCutting: [], epCathode: [] };
         if (!history.sampleCutting) history.sampleCutting = [];
@@ -227,9 +114,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- 5. 计算主流程启动 ---
     calculateBtn.addEventListener('click', () => {
-        if (!originalImage) { alert('请先导入图片！'); return; }
+        if (!originalImage) { alert('请先上传一张图片！'); return; }
         if (scale === 0) { alert('请先设定比例尺！'); return; }
         if (typeof cv === 'undefined' || !cv.Mat) { alert('OpenCV引擎正在加载中，请稍候再试！'); return; }
 
@@ -247,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             try {
                 const extractData = processImageContour(canvas);
-                if (!extractData) throw new Error('未能检测到清晰轮廓，请更换对比度更好的图片。');
+                if (!extractData) throw new Error('未能检测到物料轮廓，请更换图片。');
 
                 const { contourArray, maskData, maskCols, maskRows, boundingBox } = extractData;
 
@@ -262,8 +148,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 drawFinalPlan(contourArray, bestPlan.placements, bestPlan.grid_info);
                 displayGridInfo(bestPlan.grid_info, layers, totalSamples, bestPlan.placements.length, devConfig.wireDiameter, devConfig.dimensionTolerance);
 
+                // --- 核心：保存历史记录 ---
                 if (bestPlan.placements.length > 0) {
+                    // 压缩画布为 JPEG 缩略图保存
                     const thumbnailBase64 = canvas.toDataURL('image/jpeg', 0.6); 
+                    
                     saveToHistory({
                         id: Date.now(),
                         date: new Date().toLocaleString(),
@@ -271,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         settings: { wireDiameter: devConfig.wireDiameter, tolerance: devConfig.dimensionTolerance },
                         results: { totalSamples, layers },
                         thumbnail: thumbnailBase64,
-                        instructionHTML: resultDiv.innerHTML
+                        instructionHTML: resultDiv.innerHTML // 直接保存指令供历史记录展示
                     });
                 }
 
@@ -284,7 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 100);
     });
 
-    // --- 6. 纯前端 OpenCV 图像处理算法 ---
+    // --- 下方的图像处理和排版函数保持原样 ---
     function processImageContour(canvasElement) {
         let src = cv.imread(canvasElement);
         let gray = new cv.Mat();
@@ -341,12 +230,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
     }
 
-    // --- 7. 核心算法：标准间距 + 边缘容差抢救 ---
     function calculateGridPlan(maskData, maskCols, maskRows, bbox, scale, sampleW_mm, sampleH_mm, tolerance_percent, wireDiameter_mm) {
         let kerf_px = Math.round(wireDiameter_mm / scale);
         let standardW_px = Math.round(sampleW_mm / scale);
         let standardH_px = Math.round(sampleH_mm / scale);
-
         if (standardW_px <= 0 || standardH_px <= 0) return { placements: [], grid_info: null };
 
         let pitchW_px = standardW_px + kerf_px;
@@ -357,7 +244,6 @@ document.addEventListener('DOMContentLoaded', () => {
         let maxH_px = Math.round(standardH_px * (1.0 + tolerance_percent / 100.0));
 
         let x = bbox.x, y = bbox.y, w = bbox.width, h = bbox.height;
-
         let best_placements = [];
         let best_grid_info = null;
         let best_score = -1;
@@ -379,7 +265,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     for (let j = -1; j < num_v; j++) {
                         let c = start_c + j * pitchW_px;
                         let r = start_r + i * pitchH_px;
-                        
                         if (checkRectFit(maskData, maskCols, maskRows, c, r, standardW_px, standardH_px)) {
                             current_placements.push({ c, r, w: standardW_px, h: standardH_px, col: j, row: i });
                             used_cols.add(j);
@@ -406,11 +291,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                         }
                         if (all_fit && active_rows.length > 0) {
-                            for (let i of active_rows) {
-                                current_placements.push({ c: c_new, r: start_r + i * pitchH_px, w: testW, h: standardH_px, col: min_col - 1, row: i });
-                            }
-                            used_cols.add(min_col - 1);
-                            break;
+                            for (let i of active_rows) { current_placements.push({ c: c_new, r: start_r + i * pitchH_px, w: testW, h: standardH_px, col: min_col - 1, row: i }); }
+                            used_cols.add(min_col - 1); break;
                         }
                     }
 
@@ -423,14 +305,10 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                         }
                         if (all_fit && active_rows.length > 0) {
-                            for (let i of active_rows) {
-                                current_placements.push({ c: c_new, r: start_r + i * pitchH_px, w: testW, h: standardH_px, col: max_col + 1, row: i });
-                            }
-                            used_cols.add(max_col + 1);
-                            break;
+                            for (let i of active_rows) { current_placements.push({ c: c_new, r: start_r + i * pitchH_px, w: testW, h: standardH_px, col: max_col + 1, row: i }); }
+                            used_cols.add(max_col + 1); break;
                         }
                     }
-
                     active_cols = Array.from(used_cols); 
 
                     for (let testH = maxH_px; testH >= minH_px; testH--) {
@@ -439,9 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         for (let j of active_cols) {
                             let col_width = current_placements.find(p => p.col === j).w;
                             let c = current_placements.find(p => p.col === j).c;
-                            if (!checkRectFit(maskData, maskCols, maskRows, c, r_new, col_width, testH)) {
-                                all_fit = false; break;
-                            }
+                            if (!checkRectFit(maskData, maskCols, maskRows, c, r_new, col_width, testH)) { all_fit = false; break; }
                         }
                         if (all_fit && active_cols.length > 0) {
                             for (let j of active_cols) {
@@ -449,8 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 let c = current_placements.find(p => p.col === j).c;
                                 current_placements.push({ c: c, r: r_new, w: col_width, h: testH, col: j, row: min_row - 1 });
                             }
-                            used_rows.add(min_row - 1);
-                            break;
+                            used_rows.add(min_row - 1); break;
                         }
                     }
 
@@ -460,9 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         for (let j of active_cols) {
                             let col_width = current_placements.find(p => p.col === j).w;
                             let c = current_placements.find(p => p.col === j).c;
-                            if (!checkRectFit(maskData, maskCols, maskRows, c, r_new, col_width, testH)) {
-                                all_fit = false; break;
-                            }
+                            if (!checkRectFit(maskData, maskCols, maskRows, c, r_new, col_width, testH)) { all_fit = false; break; }
                         }
                         if (all_fit && active_cols.length > 0) {
                             for (let j of active_cols) {
@@ -470,15 +343,13 @@ document.addEventListener('DOMContentLoaded', () => {
                                 let c = current_placements.find(p => p.col === j).c;
                                 current_placements.push({ c: c, r: r_new, w: col_width, h: testH, col: j, row: max_row + 1 });
                             }
-                            used_rows.add(max_row + 1);
-                            break;
+                            used_rows.add(max_row + 1); break;
                         }
                     }
                 }
 
                 if (current_placements.length > 0) {
                     let score = current_placements.length * 1000 - (used_cols.size + used_rows.size);
-
                     if (score > best_score) {
                         best_score = score;
                         best_placements = current_placements.map(p => [p.c, p.r, p.w, p.h]);
@@ -496,7 +367,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             v_cuts: Array.from(v_cuts).sort((a,b)=>a-b),
                             h_cuts: Array.from(h_cuts).sort((a,b)=>a-b),
                             bounding_box_origin_px: [x, y],
-                            pitch_px: [pitchW_px, pitchH_px], 
+                            pitch_px: [pitchW_px, pitchH_px],
                             cut_order: used_cols.size >= used_rows.size ? '先竖后横' : '先横后竖'
                         };
                     }
@@ -506,7 +377,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return { placements: best_placements, grid_info: best_grid_info };
     }
 
-    // --- 8. 辅助渲染与绘图函数 ---
     function redrawCanvas() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         if (originalImage) ctx.drawImage(originalImage, 0, 0);
@@ -514,12 +384,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function resetState() {
         redrawCanvas();
-        scale = 0;
-        isSettingScale = false;
-        scalePoints = [];
-        scaleInfo.innerHTML = '';
-        resultDiv.innerHTML = '';
-        canvasTitle.textContent = "";
+        scale = 0; isSettingScale = false; scalePoints = [];
+        scaleInfo.innerHTML = ''; resultDiv.innerHTML = ''; canvasTitle.textContent = "";
         canvas.style.cursor = 'default';
     }
 
@@ -534,12 +400,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function drawFinalPlan(contourArray, placements, grid_info) {
         redrawCanvas();
-        
         ctx.beginPath();
         ctx.moveTo(contourArray[0][0], contourArray[0][1]);
-        for (let i = 1; i < contourArray.length; i++) {
-            ctx.lineTo(contourArray[i][0], contourArray[i][1]);
-        }
+        for (let i = 1; i < contourArray.length; i++) { ctx.lineTo(contourArray[i][0], contourArray[i][1]); }
         ctx.closePath();
         ctx.strokeStyle = 'lime'; ctx.lineWidth = 2; ctx.stroke();
 
@@ -559,7 +422,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const { v_cuts, h_cuts, pitch_px, cut_order, bounding_box_origin_px } = grid_info;
-        
         const offset_mm = {
             x: ((v_cuts[0] - bounding_box_origin_px[0]) * scale).toFixed(2),
             y: ((h_cuts[0] - bounding_box_origin_px[1]) * scale).toFixed(2)
@@ -608,17 +470,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         ctx.setLineDash([5, 5]);
-        
         ctx.strokeStyle = 'cyan';
-        v_cuts.forEach(x => {
-            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
-        });
+        v_cuts.forEach(x => { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); });
         
         ctx.strokeStyle = 'magenta';
-        h_cuts.forEach(y => {
-            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
-        });
-        
+        h_cuts.forEach(y => { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); });
         ctx.setLineDash([]);
     }
 });

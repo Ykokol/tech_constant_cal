@@ -3,21 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>计算历史</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2b2b2b">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <title>计算历史记录</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        .history-card {
+            background-color: #2b2b2b;
+            color: #f1f1f1; /* 設置基礎文字為淺灰色 */
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 5px solid #4caf50;
+            position: relative;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        /* 強制覆蓋內部所有由 JS 注入的標題和段落顏色 */
+        .history-card p, 
+        .history-card h4, 
+        .history-card strong, 
+        .history-card span,
+        .history-card div {
+            color: #f1f1f1 !important; 
+        }
+
+        .history-card img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #555;
+            border-radius: 4px;
+            margin-top: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .delete-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: #ff4c4c;
+            color: white !important;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.2s;
+        }
+        .delete-btn:hover { background-color: #ff1c1c; }
+        
+        .history-date { 
+            font-size: 0.9em; 
+            color: #aaaaaa !important; /* 日期保持稍暗的灰色以區分層次 */
+            margin-bottom: 12px; 
+            border-bottom: 1px solid #444;
+            padding-bottom: 8px;
+        }
+        .history-inputs { 
+            font-size: 0.95em; 
+            margin-bottom: 15px; 
+            line-height: 1.5;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>计算历史</h1>
+            <h1>计算历史记录</h1>
         </header>
         
         <nav>
             <a href="index.html" class="nav-btn">返回首页</a>
+            <a href="sample-cutting.html" class="nav-btn">样品分割工具</a>
+            <a href="ep-cathode.html" class="nav-btn">EP阴极工具</a>
         </nav>
         
         <main>
-            <div id="historyList"></div>
+            <div class="controls-container" style="flex-direction: column; width: 100%;">
+                
+                <h2>样品分割历史 (最近10条)</h2>
+                <div id="cuttingHistoryContainer">
+                    <p style="color: #aaa;">暂无数据...</p>
+                </div>
+                
+                <hr style="margin: 30px 0; border-color: #444;">
+
+                <h2>EP阴极计算历史 (最近10条)</h2>
+                <div id="epHistoryContainer">
+                    <p style="color: #aaa;">暂无数据...</p>
+                </div>
+
+            </div>
         </main>
         
         <footer>
@@ -25,55 +101,7 @@
         </footer>
     </div>
     
-    <script src="script.js"></script>
-    <script>
-        // 显示历史记录
-        function displayHistory() {
-            const history = JSON.parse(localStorage.getItem('history')) || [];
-            const historyList = document.getElementById('historyList');
-            
-            if (history.length === 0) {
-                historyList.innerHTML = '<p>暂无历史记录</p>';
-                return;
-            }
-            
-            historyList.innerHTML = '';
-            history.reverse().forEach((item, index) => {
-                const historyItem = document.createElement('div');
-                historyItem.className = 'sample-item';
-                
-                const date = new Date(item.timestamp);
-                const formattedDate = date.toLocaleString();
-                
-                let inputStr = '';
-                let resultStr = '';
-                
-                if (item.type === 'EP阴极暴露长度计算') {
-                    inputStr = `阴极宽度: ${item.input.cathodeWidth}<br>样品数量: ${item.input.samples.length}`;
-                    resultStr = `总样品面积: ${item.result.totalSampleArea.toFixed(2)}<br>阴极长度: ${item.result.cathodeLength.toFixed(2)}`;
-                } else if (item.type === '样品快捷分割') {
-                    inputStr = `样品尺寸: ${item.input.sampleLength}x${item.input.sampleWidth}x${item.input.sampleThickness}<br>边角料尺寸: ${item.input.stockLength}x${item.input.stockWidth}`;
-                    resultStr = `可切出数量: ${item.result.totalSamples}<br>剩余材料: ${item.result.remainingLength.toFixed(2)}x${item.result.remainingWidth.toFixed(2)}`;
-                }
-                
-                historyItem.innerHTML = `
-                    <strong>${item.type}</strong><br>
-                    <small>${formattedDate}</small><br>
-                    <br>
-                    <strong>输入参数:</strong><br>
-                    ${inputStr}<br>
-                    <br>
-                    <strong>计算结果:</strong><br>
-                    ${resultStr}
-                `;
-                historyList.appendChild(historyItem);
-            });
-        }
-        
-        // 页面加载时显示历史记录
-        window.onload = function() {
-            displayHistory();
-        };
-    </script>
+    <script src="navigation.js"></script>
+    <script src="history.js"></script>
 </body>
 </html>

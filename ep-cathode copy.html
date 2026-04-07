@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EP阴极暴露长度计算</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>EP阴极暴露长度计算</h1>
+        </header>
+        
+        <nav>
+            <a href="index.html" class="nav-btn">返回首页</a>
+        </nav>
+        
+        <main>
+            <div class="form-group">
+                <label for="cathodeWidth">阴极宽度</label>
+                <input type="number" id="cathodeWidth" placeholder="请输入阴极宽度" step="0.1" onchange="validateInput(this)">
+                <div class="error-message" id="cathodeWidthError"></div>
+            </div>
+            
+            <h2>样品管理</h2>
+            <div class="form-group">
+                <label for="sampleLength">样品长度</label>
+                <input type="number" id="sampleLength" placeholder="请输入样品长度" step="0.1" onchange="validateInput(this)">
+                <div class="error-message" id="sampleLengthError"></div>
+            </div>
+            <div class="form-group">
+                <label for="sampleWidth">样品宽度</label>
+                <input type="number" id="sampleWidth" placeholder="请输入样品宽度" step="0.1" onchange="validateInput(this)">
+                <div class="error-message" id="sampleWidthError"></div>
+            </div>
+            <div class="form-group">
+                <label for="sampleThickness">样品厚度</label>
+                <input type="number" id="sampleThickness" placeholder="请输入样品厚度" step="0.1" onchange="validateInput(this)">
+                <div class="error-message" id="sampleThicknessError"></div>
+            </div>
+            <div class="form-group">
+                <label for="sampleQuantity">样品数量</label>
+                <input type="number" id="sampleQuantity" placeholder="请输入样品数量" step="1" onchange="validateInput(this)">
+                <div class="error-message" id="sampleQuantityError"></div>
+            </div>
+            <button class="btn" onclick="addSample()">添加样品</button>
+            <button class="btn btn-secondary" onclick="exportSamples()">导出样品</button>
+            <input type="file" id="importSamples" accept=".json" onchange="importSamples(event)" style="display: inline-block; margin-left: 10px;">
+            
+            <h3>样品列表</h3>
+            <div id="sampleList"></div>
+            
+            <button class="btn" onclick="calculateEPCathodeExposure()">计算</button>
+            
+            <div id="result" class="result"></div>
+        </main>
+        
+        <footer>
+            <p>© 2026 工程常数计算工具</p>
+        </footer>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>

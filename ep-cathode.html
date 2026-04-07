@@ -3,57 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EP阴极暴露长度计算</title>
+    <title>EP 阴极暴露宽度计算</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>EP阴极暴露长度计算</h1>
+            <h1>EP 阴极暴露宽度计算</h1>
         </header>
         
         <nav>
             <a href="index.html" class="nav-btn">返回首页</a>
+            <a href="developer-settings.html" class="nav-btn">全局设置</a>
         </nav>
         
         <main>
-            <div class="form-group">
-                <label for="cathodeWidth">阴极宽度</label>
-                <input type="number" id="cathodeWidth" placeholder="请输入阴极宽度" step="0.1" onchange="validateInput(this)">
-                <div class="error-message" id="cathodeWidthError"></div>
+            <div class="controls-container" style="flex-direction: column;">
+                
+                <div class="control-group" style="width: 100%;">
+                    <h2>阴极极板参数</h2>
+                    <div class="form-group" style="display: flex; gap: 15px; flex-wrap: wrap;">
+                        <div style="flex: 1;">
+                            <label for="cathodeLength">极板已知长度 (mm)</label>
+                            <input type="number" id="cathodeLength" value="50" step="1" placeholder="例如阴极板的宽度">
+                        </div>
+                        <div style="flex: 1;">
+                            <label for="cathodeThickness">极板厚度 (mm)</label>
+                            <input type="number" id="cathodeThickness" value="1.0" step="0.1" placeholder="例如阴极板的厚度">
+                        </div>
+                    </div>
+                    <p class="instructions" style="margin-top: 10px;">注：系统将自动计算建议浸入的宽度(深度)。面积计算包含正反两面、两侧边以及底边，顶部视为液面以上不计入。</p>
+                </div>
+
+                <div class="control-group" style="width: 100%; margin-top: 20px;">
+                    <h2>阳极样品清单 (可添加多组)</h2>
+                    <div id="sampleList">
+                        </div>
+                    <button class="btn btn-secondary" id="addSampleBtn" style="margin-top: 10px;">+ 添加新尺寸样品</button>
+                    
+                    <hr style="margin: 20px 0;">
+                    <button class="btn btn-primary" id="calculateEpBtn" style="width: 100%;">计算暴露宽度</button>
+                </div>
+
+                <div class="results-group" style="width: 100%; margin-top: 20px;">
+                    <h2>计算结果</h2>
+                    <div id="epResult" class="result">
+                        <p>请先添加样品并点击计算。</p>
+                    </div>
+                </div>
+
             </div>
-            
-            <h2>样品管理</h2>
-            <div class="form-group">
-                <label for="sampleLength">样品长度</label>
-                <input type="number" id="sampleLength" placeholder="请输入样品长度" step="0.1" onchange="validateInput(this)">
-                <div class="error-message" id="sampleLengthError"></div>
-            </div>
-            <div class="form-group">
-                <label for="sampleWidth">样品宽度</label>
-                <input type="number" id="sampleWidth" placeholder="请输入样品宽度" step="0.1" onchange="validateInput(this)">
-                <div class="error-message" id="sampleWidthError"></div>
-            </div>
-            <div class="form-group">
-                <label for="sampleThickness">样品厚度</label>
-                <input type="number" id="sampleThickness" placeholder="请输入样品厚度" step="0.1" onchange="validateInput(this)">
-                <div class="error-message" id="sampleThicknessError"></div>
-            </div>
-            <div class="form-group">
-                <label for="sampleQuantity">样品数量</label>
-                <input type="number" id="sampleQuantity" placeholder="请输入样品数量" step="1" onchange="validateInput(this)">
-                <div class="error-message" id="sampleQuantityError"></div>
-            </div>
-            <button class="btn" onclick="addSample()">添加样品</button>
-            <button class="btn btn-secondary" onclick="exportSamples()">导出样品</button>
-            <input type="file" id="importSamples" accept=".json" onchange="importSamples(event)" style="display: inline-block; margin-left: 10px;">
-            
-            <h3>样品列表</h3>
-            <div id="sampleList"></div>
-            
-            <button class="btn" onclick="calculateEPCathodeExposure()">计算</button>
-            
-            <div id="result" class="result"></div>
         </main>
         
         <footer>
@@ -61,6 +60,7 @@
         </footer>
     </div>
     
-    <script src="script.js"></script>
+    <script src="navigation.js"></script>
+    <script src="ep-cathode.js"></script> 
 </body>
 </html>
